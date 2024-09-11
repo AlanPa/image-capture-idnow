@@ -1,20 +1,17 @@
 package fr.idnow.imagecapture.presentation
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.Lifecycle
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import fr.idnow.imagecapture.MainActivity
 import fr.idnow.imagecapture.R
 import fr.idnow.imagecapture.databinding.FragmentFirstBinding
-import fr.idnow.imagecapture.domain.usecases.GetSingleQuoteUseCase
 import fr.idnow.imagecapture.presentation.viewmodels.QuoteViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 /**
@@ -28,12 +25,16 @@ class FirstFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
-    private val quoteViewModel: QuoteViewModel = QuoteViewModel(GetSingleQuoteUseCase(), Dispatchers.IO)
+    private lateinit var quoteViewModel: QuoteViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+
+        val appContainer = (activity as MainActivity).appContainer
+
+        quoteViewModel = QuoteViewModel(appContainer.getSingleQuoteUseCase, Dispatchers.IO)
 
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
         return binding.root
