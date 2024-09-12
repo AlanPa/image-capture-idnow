@@ -29,14 +29,14 @@ import java.util.concurrent.Executors
 
 class MainActivity : AppCompatActivity() {
 
+    private val appContainer = AppContainer()
+
     private lateinit var binding: ActivityMainBinding
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var quoteViewModel: QuoteViewModel
 
     private var imageCapture: ImageCapture? = null
     private var capturedImageBitmap: Bitmap? = null
-
-    val appContainer = AppContainer()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,6 +48,24 @@ class MainActivity : AppCompatActivity() {
         checkPermissionsAndStartCamera()
 
         cameraExecutor = Executors.newSingleThreadExecutor()
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_CODE_PERMISSIONS && allPermissionsGranted()) {
+            startCamera()
+        } else {
+            showToast(this, "Permissions not granted by the user.")
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        cameraExecutor.shutdown()
     }
 
     private fun initViewModel() {
@@ -72,24 +90,6 @@ class MainActivity : AppCompatActivity() {
                 this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS
             )
         }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_CODE_PERMISSIONS && allPermissionsGranted()) {
-            startCamera()
-        } else {
-            showToast(this, "Permissions not granted by the user.")
-        }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        cameraExecutor.shutdown()
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
