@@ -8,14 +8,16 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 
 class QuoteViewModel(
     private val getSingleQuoteUseCase: GetSingleQuoteUseCase,
     private val dispatcher: CoroutineDispatcher
-): ViewModel() {
-   private val _quoteUiState: MutableStateFlow<QuoteUiState> = MutableStateFlow(QuoteUiState.Success(Quote("This is the initial quote")))
-   val quoteUiState: StateFlow<QuoteUiState> = _quoteUiState.asStateFlow()
+) : ViewModel() {
+    private val _quoteUiState: MutableStateFlow<QuoteUiState> =
+        MutableStateFlow(QuoteUiState.Success(Quote("This is the initial quote")))
+    val quoteUiState: StateFlow<QuoteUiState> = _quoteUiState.asStateFlow()
 
     init {
         getSingleQuote()
@@ -24,6 +26,9 @@ class QuoteViewModel(
     private fun getSingleQuote() {
         viewModelScope.launch(dispatcher) {
             getSingleQuoteUseCase.getSingleQuote()
+                .catch { exception ->
+                    _quoteUiState.value = QuoteUiState.Error(exception)
+                }
                 .collect { quote ->
                     _quoteUiState.value = QuoteUiState.Success(quote)
                 }
@@ -31,7 +36,7 @@ class QuoteViewModel(
     }
 
     sealed class QuoteUiState {
-        data class Success(val quote: Quote): QuoteUiState()
-        data class Error(val exception: Throwable): QuoteUiState()
+        data class Success(val quote: Quote) : QuoteUiState()
+        data class Error(val exception: Throwable) : QuoteUiState()
     }
 }
